@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Líquidos</title>
+    <script>
+        function calcular() {
+            // Obtener los valores ingresados
+            let dias = parseFloat(document.getElementById('dias').value);
+            let peso = parseFloat(document.getElementById('peso').value);
+            let dx = parseFloat(document.getElementById('dx').value);
+            let mlMeds = parseFloat(document.getElementById('mlMeds').value);
+
+            // Calcular B5 (LT)
+            let lt = 0;
+            if (dias == 1) {
+                lt = (peso * 70) - mlMeds;
+            } else if (dias == 2) {
+                lt = (peso * 80) - mlMeds;
+            } else if (dias == 3) {
+                lt = (peso * 90) - mlMeds;
+            } else {
+                lt = (peso * 100) - mlMeds;
+            }
+            
+            document.getElementById('lt').value = lt.toFixed(2);
+            
+            // Calcular Gluconato de Calcio (G3)
+            let gluconatoCalcio = 2 * peso;
+            
+            // Calcular Magnesio (G4)
+            let magnesio = (dias > 1) ? peso * 0.3 : 0;
+            
+            // Calcular Na (sodio) (G5)
+            let sodio = (dias > 2) ? (peso * 2 * 1000) / 154 : 0;
+            
+            // Calcular Potasio (G6)
+            let potasio = (dias > 3) ? lt / 100 : 0;
+            
+            // Calcular B7
+            let B7 = (dx * peso * 1.44) - ((lt - gluconatoCalcio - magnesio - sodio - potasio) / 10);
+            
+            // Calcular F7
+            let F7 = (B7 < 0) ? "Dx 5%" : "Dx 50%";
+            
+            // Calcular G7 (según el valor de F7)
+            let G7 = 0;
+            if (F7 == "Dx 5%") {
+                G7 = (B7 * -1) * 20;
+                document.getElementById('Dx5').innerText = G7.toFixed(2);
+                document.getElementById('Dx50').innerText = "0(no se pone)";
+            } else {
+                G7 = B7 * 2.5;
+                document.getElementById('Dx50').innerText = G7.toFixed(2);
+                document.getElementById('Dx5').innerText = "0 (no se pone)";
+            }
+            
+            // Calcular G8
+            let dx10 = lt - gluconatoCalcio - magnesio - sodio - potasio - G7;
+            
+            // Calcular G9
+            let totalLiquidos = gluconatoCalcio + magnesio + sodio + potasio + G7 + dx10;
+            
+            // Mostrar resultados
+            document.getElementById('gluconatoCalcio').innerText = gluconatoCalcio.toFixed(2);
+            document.getElementById('magnesio').innerText = magnesio.toFixed(2);
+            document.getElementById('sodio').innerText = sodio.toFixed(2);
+            document.getElementById('potasio').innerText = potasio.toFixed(2);
+            document.getElementById('B7').innerText = B7.toFixed(2);
+            document.getElementById('Dx10').innerText = dx10.toFixed(2);
+            document.getElementById('TotalLiquidos').innerText = totalLiquidos.toFixed(2);
+        }
+    </script>
+</head>
+<body>
+    <h1>Calculadora de Líquidos</h1>
+    <form onsubmit="event.preventDefault(); calcular();">
+        <label for="dias">Dias:</label>
+        <input type="number" id="dias" name="dias" step="any" required><br>
+        <label for="peso">Peso kg:</label>
+        <input type="number" id="peso" name="peso" step="any" required><br>
+        <label for="dx">Dextrosa:</label>
+        <input type="number" id="dx" name="dx" step="any" required><br>
+        <label for="lt">Liquidos Totales:</label>
+        <input type="number" id="lt" name="lt" step="any" readonly><br>
+        <label for="mlMeds">ml de meds:</label>
+        <input type="number" id="mlMeds" name="mlMeds" step="any" required><br>
+        <input type="submit" value="Calcular">
+    </form>
+    
+    <h2>Resultados</h2>
+    <p>Gluconato de Calcio: <span id="gluconatoCalcio"></span></p>
+    <p>Magnesio: <span id="magnesio"></span></p>
+    <p>Na (sodio): <span id="sodio"></span></p>
+    <p>Potasio: <span id="potasio"></span></p>
+    <p>Calculo de Dextrosa Gr/kg/min: <span id="B7"></span></p>
+    <p>Dx 5%: <span id="Dx5"></span></p>
+    <p>Dx 50%: <span id="Dx50"></span></p>
+    <p>Dx 10%: <span id="Dx10"></span></p>
+    <p>Total de líquidos: <span id="TotalLiquidos"></span></p>
+</body>
+</html>

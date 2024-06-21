@@ -4,13 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Líquidos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        label, input, select {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="number"], select {
+            width: calc(20% - 10px);
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        input[placeholder="Aporte de Glucosaxkg (4-6)"] {
+            width: 30ch; /* Ajusta el ancho del campo de entrada al tamaño del placeholder */
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input {
+            margin-right: 5px;
+        }
+        .metodo-calculo {
+            font-weight: bold;
+            background-color: yellow;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .resultados {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .resultados h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #007BFF;
+        }
+
+        .resultados p {
+            margin-bottom: 8px;
+        }
+
+        .resultados span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        button#calcular {
+            padding: 15px 30px; /* Ajusta el padding para aumentar el tamaño del botón */
+        font-size: 1.2em; /* Ajusta el tamaño de la fuente del botón */
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%; /* Ajusta el ancho del botón al 100% del contenedor */
+        display: block; /* Asegura que ocupe toda la anchura disponible */
+        margin-top: 20px; /* Espacio arriba del botón */
+        }
+
+        button#calcular:hover {
+        background-color: #0056b3; /* Cambia el color de fondo al pasar el ratón */
+        }
+        
+    </style>
     <script>
+        // Variables para almacenar los datos ingresados previamente
+        let datosRN = {};
+        let datosMantenimiento = {};
+        let valoresPredeterminados = {
+            "Mlsxm2": 1800,
+            "aportKCl": 20,
+            "kclMeq": 2,
+            "kclMl": 1,
+            // Agrega más valores predeterminados aquí si es necesario
+        };
+
+        function mostrarInputs() {
+            const edadUnidad = document.getElementById('edadUnidad').value;
+            const rnInputs = document.getElementById('rnInputs');
+            const mantenimientoInputs = document.getElementById('mantenimientoInputs');
+            const rnResultados = document.getElementById('rnResultados');
+            const mantenimientoResultados = document.getElementById('mantenimientoResultados');
+
+            if (edadUnidad === 'días') {
+                rnInputs.style.display = 'block';
+                mantenimientoInputs.style.display = 'none';
+                rnResultados.style.display = 'block';
+                mantenimientoResultados.style.display = 'none';
+
+                // Obtener el valor de la edad y asignarlo al campo de días
+                const dias = document.getElementById('Edad').value;
+                document.getElementById('dias').value = dias;
+            } else {
+                rnInputs.style.display = 'none';
+                mantenimientoInputs.style.display = 'block';
+                rnResultados.style.display = 'none';
+                mantenimientoResultados.style.display = 'block';
+            }
+
+            // Restaurar los valores ingresados anteriormente
+            if (edadUnidad === 'días' && datosRN) {
+                for (let key in datosRN) {
+                    if (document.getElementById(key)) {
+                        document.getElementById(key).value = datosRN[key];
+                    }
+                }
+            } else if ((edadUnidad === 'meses' || edadUnidad === 'años') && datosMantenimiento) {
+                for (let key in datosMantenimiento) {
+                    if (document.getElementById(key)) {
+                        document.getElementById(key).value = datosMantenimiento[key];
+                    }
+                }
+            }
+        }
+
         function calcular() {
+            const edadUnidad = document.getElementById('edadUnidad').value;
+
+            if (edadUnidad === 'días') {
+                calcularRN();
+            } else {
+                calcularMantenimiento();
+            }
+        }
+
+        function calcularRN() {
             // Obtener los valores ingresados
-            let dias = parseFloat(document.getElementById('dias').value);
+            let dias = parseFloat(document.getElementById('Edad').value);
             let peso = parseFloat(document.getElementById('peso').value);
             let dx = parseFloat(document.getElementById('dx').value);
             let mlMeds = parseFloat(document.getElementById('mlMeds').value);
+
+            // Guardar los datos ingresados
+            datosRN = { dias, peso, dx, mlMeds };
 
             // Calcular B5 (LT)
             let lt = 0;
@@ -20,11 +191,21 @@
                 lt = (peso * 80) - mlMeds;
             } else if (dias == 3) {
                 lt = (peso * 90) - mlMeds;
-            } else {
+            } else if (dias == 4) {
                 lt = (peso * 100) - mlMeds;
+            } else if (dias == 5) {
+                lt = (peso * 110) - mlMeds;
+            } else if (dias == 6) {
+                lt = (peso * 120) - mlMeds;
+            } else if (dias == 7) {
+                lt = (peso * 130) - mlMeds;
+            } else if (dias == 8) {
+                lt = (peso * 140) - mlMeds;
+            } else {
+                lt = (peso * 150) - mlMeds;
             }
             
-            document.getElementById('lt').value = lt.toFixed(2);
+            document.getElementById('lt').innerText = lt.toFixed(2);
             
             // Calcular Gluconato de Calcio (G3)
             let gluconatoCalcio = 2 * peso;
@@ -49,7 +230,7 @@
             if (F7 == "Dx 5%") {
                 G7 = (B7 * -1) * 20;
                 document.getElementById('Dx5').innerText = G7.toFixed(2);
-                document.getElementById('Dx50').innerText = "0(no se pone)";
+                document.getElementById('Dx50').innerText = "0 (no se pone)";
             } else {
                 G7 = B7 * 2.5;
                 document.getElementById('Dx50').innerText = G7.toFixed(2);
@@ -71,33 +252,157 @@
             document.getElementById('Dx10').innerText = dx10.toFixed(2);
             document.getElementById('TotalLiquidos').innerText = totalLiquidos.toFixed(2);
         }
+
+        function calcularMantenimiento() {
+            // Obtener los valores ingresados
+            let peso = parseFloat(document.getElementById('peso1').value);
+            let Mlsxm2 = parseFloat(document.getElementById('Mlsxm21').value);
+            let aportKCl = parseFloat(document.getElementById('aportKCl1').value);
+            let kclMeq = parseFloat(document.getElementById('kclMeq1').value);
+            let kclMl = parseFloat(document.getElementById('kclMl1').value);
+
+            // Guardar los datos ingresados
+            datosMantenimiento = { peso, Mlsxm2, aportKCl, kclMeq, kclMl };
+
+            // Calcular B5 (LT)
+            let lt = 0;
+            if (peso < 11) {
+                lt = peso * 100;
+            } else if (peso < 21) {
+                lt = 1000 + ((peso - 10) * 50);
+            } else if (peso < 31) {
+                lt = 1500 + ((peso - 20) * 20);
+            } else {
+                lt = ((((4 * peso) + 7) / (peso + 90))*Mlsxm2);
+            }
+            // Mostrar resultado en el HTML
+            document.getElementById('resultado_lt').innerText = `Líquidos Totales: ${lt.toFixed(2)} ml`;
+
+            // Calcular G4 (Superficie en m2)
+            let superficie = 0;
+            if (peso > 30) {
+                superficie = (((4 * peso) + 7) / (peso + 90));
+            } else {
+                superficie = 0
+            }
+
+            let metodo;
+            if (superficie === 0) {
+            metodo = "Los cálculos se hicieron por el método de Holliday Segar.";
+            } else {
+                 metodo = "Los cálculos se hicieron por el método de Superficie de Agua Corporal.";
+            }
+            document.getElementById('metodoCalculo').innerText = metodo;
+            
+            // Calcular G5 (Velocidad)
+            let velocidad = lt / 24;
+            
+            // Calcular G6 (ml de KCl)
+            let kclTotal = (aportKCl / kclMeq) * kclMl;
+            
+            // Mostrar resultados
+            document.getElementById('M21').innerText = superficie.toFixed(2);
+            document.getElementById('velocidad1').innerText = velocidad.toFixed(2);
+            document.getElementById('kcltot1').innerText = kclTotal.toFixed(2);
+        }
+
+        function toggleDefaultValues() {
+            const inputs = document.querySelectorAll('input[data-default]');
+            inputs.forEach(input => {
+                if (input.value === "") {
+                    input.value = valoresPredeterminados[input.name];
+                }
+            });
+        }
+
+        function resetValues() {
+            if (confirm("¿Estás seguro de que quieres borrar todos los datos ingresados?")) {
+                datosRN = {};
+                datosMantenimiento = {};
+                document.getElementById('formulario').reset();
+                mostrarInputs();
+            }
+        }
     </script>
 </head>
-<body>
-    <h1>Calculadora de Líquidos</h1>
-    <form onsubmit="event.preventDefault(); calcular();">
-        <label for="dias">Dias:</label>
-        <input type="number" id="dias" name="dias" step="any" required><br>
-        <label for="peso">Peso kg:</label>
-        <input type="number" id="peso" name="peso" step="any" required><br>
-        <label for="dx">Dextrosa:</label>
-        <input type="number" id="dx" name="dx" step="any" required><br>
-        <label for="lt">Liquidos Totales:</label>
-        <input type="number" id="lt" name="lt" step="any" readonly><br>
-        <label for="mlMeds">ml de meds:</label>
-        <input type="number" id="mlMeds" name="mlMeds" step="any" required><br>
-        <input type="submit" value="Calcular">
-    </form>
-    
-    <h2>Resultados</h2>
-    <p>Gluconato de Calcio: <span id="gluconatoCalcio"></span></p>
-    <p>Magnesio: <span id="magnesio"></span></p>
-    <p>Na (sodio): <span id="sodio"></span></p>
-    <p>Potasio: <span id="potasio"></span></p>
-    <p>Calculo de la Dextrosa Gr/kg/min: <span id="B7"></span></p>
-    <p>Dx 5%: <span id="Dx5"></span></p>
-    <p>Dx 50%: <span id="Dx50"></span></p>
-    <p>Dx 10%: <span id="Dx10"></span></p>
-    <p>Total de líquidos: <span id="TotalLiquidos"></span></p>
+<body onload="mostrarInputs()">
+    <div class="container">
+        <h1>Calculadora de Líquidos</h1>
+        <form id="formulario" onsubmit="event.preventDefault(); calcular();">
+            <div class="input-group">
+                <label for="Edad">Edad:</label>
+                <input type="number" id="Edad" name="Edad" step="any" required onchange="mostrarInputs()">
+                <select id="edadUnidad" name="edadUnidad" required onchange="mostrarInputs()">
+                    <option value="años">Años</option>
+                    <option value="meses">Meses</option>
+                    <option value="días">Días</option>
+                </select>
+            </div>
+
+            <div id="rnInputs" style="display: none;">
+                <input type="hidden" id="dias" name="dias">
+                <label for="peso">Peso kg:</label>
+                <input type="number" id="peso" name="peso" step="any"><br>
+
+                <label for="dx">Dextrosa x kg (4-6):</label>
+                <input type="number" id="dx" name="dx" step="any"><br>
+
+                <label for="mlMeds">ml de medicación:</label>
+                <input type="number" id="mlMeds" name="mlMeds" step="any"><br>
+
+                <div class="radio-group">
+                    <label><input type="radio" name="condicionBebe" value="Normal" checked> Normal</label>
+                    <label><input type="radio" name="condicionBebe" value="Pre-termino"> Pre-termino</label>
+                    <label><input type="radio" name="condicionBebe" value="Gastroquisis"> Gastroquisis</label>
+                    <label><input type="radio" name="condicionBebe" value="Asfixia"> Asfixia</label>
+                </div>
+            </div>
+
+            <div id="mantenimientoInputs" style="display: none;">
+                <label for="peso1">Peso kg:</label>
+                <input type="number" id="peso1" name="peso" step="any"><br>
+
+                <label for="Mlsxm21">Mls por m2 (1500-1800):</label>
+                <input type="number" id="Mlsxm21" name="Mlsxm2" step="any" data-default="1800"><br>
+
+                <label for="aportKCl1">Aporte de KCl mEq x cada Litro (20 mEq/1000 ml):</label>
+                <input type="number" id="aportKCl1" name="aportKCl" data-default="20" step="any"><br>
+
+                <label>Presentación de KCl:</label>
+                <input type="number" id="kclMeq1" name="kclMeq" step="any" data-default="2" placeholder="mEq">
+                <input type="number" id="kclMl1" name="kclMl" step="any" data-default="1" placeholder="mL">
+            </div>
+            
+            <h2>Resultados</h2>
+            
+            <div id="rnResultados" style="display: none;" class="resultados">
+                <h3>Resultados de la Calculadora de Líquidos en RN</h3>
+                <p>Líquidos Totales (LT): <span id="lt"></span></p>
+                <p>Gluconato de Calcio: <span id="gluconatoCalcio"></span></p>
+                <p>Magnesio: <span id="magnesio"></span></p>
+                <p>Sodio: <span id="sodio"></span></p>
+                <p>Potasio: <span id="potasio"></span></p>
+                <p>Resta de Dextrosa - Liq Calculados: <span id="B7"></span></p>
+                <p>Dx 5%: <span id="Dx5"></span></p>
+                <p>Dx 50%: <span id="Dx50"></span></p>
+                <p>Dx 10: <span id="Dx10"></span></p>
+                <p>Total Líquidos: <span id="TotalLiquidos"></span></p>
+            </div>
+            
+            
+            <div id="mantenimientoResultados" style="display: none;">
+                <p id="metodoCalculo" class="metodo-calculo"></p>
+                <p id="metodoCalculo"></p>
+                <p>Superficie en m2: <span id="M21"></span></p>
+                <p>Velocidad: <span id="velocidad1"></span></p>
+                <p>ml de Potasio: <span id="kcltot1"></span></p>
+                <div id="resultado_lt" class="result"></div>
+            </div>
+
+            <input type="submit" value="Calcular">
+        </form>
+        <button type="button" onclick="toggleDefaultValues()">Activar/Desactivar Valores Predeterminados</button>
+        <button type="button" onclick="resetValues()" style="background-color: red;">Borrar Datos</button>
+    </div>
 </body>
 </html>
